@@ -35,10 +35,6 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: write
 
     steps:
     - name: Download artifact
@@ -46,6 +42,10 @@ jobs:
       with:
         name: my-app
         path: .
+
+    - name: Main
+      run: |
+        ls
 
     - name: Create Release
       id: create_release
