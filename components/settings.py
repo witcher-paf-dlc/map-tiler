@@ -4,12 +4,13 @@ from tkinter import ttk
 import json
 import os
 
-import utils
+from utils import utils
+
 
 class GlobalSettings:
     _instance = None
     _settings = {}
-    _settings_file = 'settings.json'
+    _settings_file = '../settings.json'
 
     def __new__(cls):
         if cls._instance is None:

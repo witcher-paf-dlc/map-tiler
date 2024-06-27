@@ -4,15 +4,13 @@ from tkinter import ttk as ttk
 import numpy as np
 from PIL import Image, ImageTk
 from tkinter import filedialog
-from PIL.Image import Resampling
-from tkinter.messagebox import showerror, showwarning, showinfo
-import constants
-import icons
-import utils
+from tkinter.messagebox import showwarning
+from resources import icons, constants
+from utils import utils
 from p4 import P4Manager
-from settings import SettingsModal, GlobalSettings
-from test2 import PanZoomCanvas
-from tile import Tile, CheckoutInfo
+from components.settings import SettingsModal, GlobalSettings
+from components.map import PanZoomCanvas
+from models.tile import Tile, CheckoutInfo
 
 
 class TileSelector:

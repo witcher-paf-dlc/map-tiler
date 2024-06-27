@@ -1,8 +1,6 @@
 import os
-
 from P4 import P4, P4Exception
-
-from settings import GlobalSettings
+from components.settings import GlobalSettings
 
 
 class P4Manager:

@@ -4,8 +4,7 @@ import numpy as np
 from PIL import Image, ImageTk
 from PIL.Image import Resampling, Transform
 
-import constants
-from tile import Tile
+from models.tile import Tile
 
 
 class PanZoomCanvas:

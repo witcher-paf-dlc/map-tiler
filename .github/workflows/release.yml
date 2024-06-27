@@ -24,7 +24,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Build executable
-      run: pyinstaller test.py --onefile --windowed --add-data "resources/map.png;resources" --name map-tiler
+      run: pyinstaller main.py --onefile --windowed --add-data "resources/map.png;resources" --name map-tiler
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2

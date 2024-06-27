@@ -1,4 +1,4 @@
-from constants import TILE_COLOR
+from resources.constants import TILE_COLOR
 
 
 class Tile:

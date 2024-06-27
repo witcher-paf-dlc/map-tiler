@@ -1,9 +1,9 @@
-from settings import GlobalSettings
+from components.settings import GlobalSettings
 import tkinter as tk
 from tkinter import ttk
 
-from tiler import TileSelector
-from tkinter.messagebox import showerror, showwarning, showinfo
+from components.tiler import TileSelector
+from tkinter.messagebox import showwarning
 
 
 class InitModal:
