@@ -51,6 +51,6 @@ jobs:
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
-        files: dist/test.exe
+        files: test.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
