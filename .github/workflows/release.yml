@@ -24,7 +24,7 @@ jobs:
         pip install pyinstaller
 
     - name: Build executable
-      run: pyinstaller --onefile --windowed test.py
+      run: pyinstaller test.py --onefile --windowed
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
