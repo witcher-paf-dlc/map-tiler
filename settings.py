@@ -1,9 +1,10 @@
-# settings_modal.py
 import tkinter as tk
 from tkinter import ttk
 
 import json
 import os
+
+import utils
 
 class GlobalSettings:
     _instance = None
@@ -79,8 +80,14 @@ class SettingsModal:
         save_button = ttk.Button(self.window, text="Сохранить", command=self.save_settings)
         save_button.grid(row=row, column=0, columnspan=2, pady=10)
 
+        update_button = ttk.Button(self.window, text="Обновить", command=self.update_app)
+        update_button.grid(row=row, column=0, columnspan=2, pady=10)
+
     def save_settings(self):
         for key, var in self.entries.items():
             value = var.get()
             self.settings.set_setting(key, value)
         self.window.destroy()
+
+    def update_app(self):
+        utils.get_latest_release_info()
