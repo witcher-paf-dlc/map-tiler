@@ -1,0 +1,4 @@
+p4python
+numpy
+pillow
+pyinstaller
