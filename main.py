@@ -385,7 +385,7 @@ def stitch_tiles(input_folder, output_image_path, tile_size=1024, grid_size=16, 
 
 if __name__ == "__main__":
     input_folder = "D:\paf\minimap\kaer_morhen\exterior\Full"
-    output_image_path = "stitched_tiles.png"
+    output_image_path = "resources/map.png"
     stitch_tiles(input_folder, output_image_path)
     #
     # root = tk.Tk()

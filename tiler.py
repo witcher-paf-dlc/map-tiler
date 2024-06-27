@@ -7,6 +7,7 @@ from tkinter import filedialog
 from PIL.Image import Resampling
 from tkinter.messagebox import showerror, showwarning, showinfo
 import constants
+import icons
 import utils
 from p4 import P4Manager
 from settings import SettingsModal, GlobalSettings
@@ -57,13 +58,8 @@ class TileSelector:
     def setup_ui(self):
         self.master.geometry('1300x700')
 
-        self.plus_icon = Image.open("plus.png")
-        self.plus_icon = self.plus_icon.resize((20, 20), Resampling.LANCZOS)
-        self.plus_icon_tk = ImageTk.PhotoImage(self.plus_icon)
-
-        self.refresh_icon = Image.open("refresh.png")
-        self.refresh_icon = self.refresh_icon.resize((20, 20), Resampling.LANCZOS)
-        self.refresh_icon_tk = ImageTk.PhotoImage(self.refresh_icon)
+        self.plus_icon_tk = tk.PhotoImage(data=icons.add_icon)
+        self.refresh_icon_tk = tk.PhotoImage(data=icons.refresh_icon)
 
         self.control_frame = tk.Frame(self.master, width=700, height=700)
         self.control_frame.pack(fill=tk.BOTH, expand=True, pady=20)
@@ -74,7 +70,7 @@ class TileSelector:
         self.right_panel_frame = tk.Frame(self.control_frame, width=200)
         self.right_panel_frame.pack(side=tk.LEFT, fill=tk.BOTH, padx=15, pady=5)
 
-        self.canvas_image = PanZoomCanvas(self.control_frame, 700, 700, 'stitched_tiles.png', self.right_panel_frame)
+        self.canvas_image = PanZoomCanvas(self.control_frame, 700, 700, self.image_path, self.right_panel_frame)
         self.canvas = self.canvas_image.canvas
         self.selected_tiles = self.canvas_image.selected_tiles
 

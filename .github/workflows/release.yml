@@ -24,13 +24,13 @@ jobs:
         pip install -r requirements.txt
 
     - name: Build executable
-      run: pyinstaller test.py --onefile --windowed
+      run: pyinstaller test.py --onefile --windowed --add-data "resources/map.png;resources" --name map-tiler
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
-        name: my-app
-        path: dist/test.exe
+        name: app
+        path: dist/map-tiler.exe
 
   release:
     needs: build
@@ -40,17 +40,13 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v2
       with:
-        name: my-app
+        name: app
         path: .
-
-    - name: Main
-      run: |
-        ls
 
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
-        files: test.exe
+        files: map-tiler.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

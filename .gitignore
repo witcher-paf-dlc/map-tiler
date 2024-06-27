@@ -1,0 +1,7 @@
+.idea
+.venv
+dist
+build
+settings.json
+*.spec
+ver

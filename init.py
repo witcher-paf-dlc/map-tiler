@@ -7,8 +7,9 @@ from tkinter.messagebox import showerror, showwarning, showinfo
 
 
 class InitModal:
-    def __init__(self, master):
+    def __init__(self, master, image):
         self.master = master
+        self.image = image
 
         self.settings = GlobalSettings
         self.settings.add_setting('user_name', '');
@@ -31,5 +32,5 @@ class InitModal:
         self.settings.set_setting('user_name', nick)
         self.master.destroy()
         root = tk.Tk()
-        TileSelector(root, 'stitched_tiles.png')
+        TileSelector(root, self.image)
         root.mainloop()
