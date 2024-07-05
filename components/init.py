@@ -9,7 +9,7 @@ from tkinter.messagebox import showwarning
 class InitModal:
     def __init__(self, master):
         self.master = master
-        self.master.geometry('300x200')
+        self.master.geometry('300x250')
         self.master.configure(padx=20, pady=10)
         self.master.resizable(False, False)
         self.master.title('Инициализация')
@@ -24,11 +24,19 @@ class InitModal:
         self.depot_combobox.current(0)
         self.depot_combobox.configure(state="readonly")
 
+        self.user_label = ttk.Label(self.master, text='Пользователь:')
+        self.user_combobox = ttk.Combobox(self.master, values=['developer', 'perforce'])
+        self.user_combobox.current(0)
+        self.user_combobox.configure(state="readonly")
+
         self.user_name_label.pack(fill=tk.X, pady=(0, 5))
         self.user_name_entry.pack(fill=tk.X, ipady=3, ipadx=5, pady=(0, 8))
 
         self.depot_label.pack(fill=tk.X, pady=(0, 5))
         self.depot_combobox.pack(fill=tk.X, ipady=3, ipadx=5, pady=(0, 10))
+
+        self.user_label.pack(fill=tk.X, pady=(0, 5))
+        self.user_combobox.pack(fill=tk.X, ipady=3, ipadx=5, pady=(0, 8))
 
         save_button = ttk.Button(self.master, text="Сохранить", command=self.init)
         save_button.pack(ipady=3, ipadx=5, side=tk.BOTTOM)
@@ -36,6 +44,7 @@ class InitModal:
     def init(self):
         nick = self.user_name_entry.get()
         depot = self.depot_combobox.get()
+        user = self.user_combobox.get()
 
         if not nick:
             showwarning(title='Введите никнейм', message='Введите никнейм')
@@ -43,6 +52,7 @@ class InitModal:
 
         self.settings.set_setting('user_name', nick)
         self.settings.set_setting('depot', depot)
+        self.settings.set_setting('user', user)
 
         self.master.destroy()
 

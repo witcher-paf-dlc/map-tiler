@@ -6,8 +6,9 @@ from models.workspace import Workspace
 class P4Manager:
     def __init__(self):
         self.p4 = P4()
-        self.p4.port = "ssl:18.198.116.34:1666"
         self.settings = GlobalSettings
+        self.p4.port = "ssl:18.198.116.34:1666"
+        self.p4.user = self.settings.get_setting('user')
 
     def set_client(self, workspace):
         if workspace is not None:

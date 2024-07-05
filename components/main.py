@@ -278,6 +278,7 @@ class MainModal:
         self.select_level(level)
 
     def refresh_level(self):
+        self.selected_tiles.clear()
         self.load_tiles(self.level)
 
     def checkout_tiles(self):

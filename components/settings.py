@@ -25,10 +25,7 @@ class GlobalSettings:
             with open(cls._settings_file, 'r') as f:
                 cls._settings = json.load(f)
         else:
-            cls._settings = {
-                'tile_size': 256,
-                'tile_border_size': 3,
-            }
+            cls._settings = {}
 
     @classmethod
     def _save_settings(cls):
@@ -127,3 +124,4 @@ class SettingsModal:
         self.depot = self.settings.set_setting('depot', depot)
 
         self.refresh()
+        self.window.destroy()
