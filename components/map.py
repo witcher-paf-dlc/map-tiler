@@ -4,11 +4,14 @@ import numpy as np
 from PIL import Image, ImageTk
 from PIL.Image import Resampling, Transform
 
+from models.level import Level
 from models.tile import Tile
+from resources import constants
 
 
-class PanZoomCanvas:
-    def __init__(self, placeholder, canvas_w, canvas_h, image, overview_frame):
+class MapCanvas:
+    def __init__(self, placeholder, canvas_w, canvas_h, level: Level, overview_frame):
+        self.level: Level = level
         self.overview_photo = None
         self.overview_frame = overview_frame
         self.master = placeholder
@@ -19,7 +22,7 @@ class PanZoomCanvas:
 
         self.selected_tiles = set()
 
-        self.set_image(image)
+        self.set_level(level)
 
     def create_widget(self, width, height):
         self.canvas = tk.Canvas(self.master, background="black", width=width, height=height)
@@ -33,12 +36,24 @@ class PanZoomCanvas:
         self.canvas.bind("<Double-Button-1>", self.mouse_double_click_left)
         self.canvas.bind("<MouseWheel>", self.mouse_wheel)
 
-    def set_image(self, filename):
-        if not filename:
+    def set_level(self, level):
+        if level is None:
+            self.pil_image = None
+            self.overview_photo = None
+            self.level = None
+            self.redraw_image()
             return
-        self.pil_image = Image.open(filename)
+
+        if self.level is not None and level == self.level:
+            return
+
+        self.level = level
+        self.tile_size = self.level.map_data.tile_size
+        self.tile_border_size = self.level.map_data.border_size
+        self.pil_image = Image.open(self.level.map_image_path)
+        self.overview_photo = None
         self.zoom_fit(self.pil_image.width / 2, self.pil_image.height / 2)
-        self.draw_image(self.pil_image)
+        self.redraw_image()
 
     def mouse_down_left(self, event):
         self.__old_event = event
@@ -87,8 +102,9 @@ class PanZoomCanvas:
         canvas_height = self.canvas.winfo_height()
 
         scale = self.mat_affine[0, 0]
-        max_y = scale * 4147
-        max_x = scale * 4147
+        max_y = scale * self.pil_image.width
+        max_x = scale * self.pil_image.height
+
         self.mat_affine = np.dot(mat, self.mat_affine)
 
         if not zoom:
@@ -131,22 +147,17 @@ class PanZoomCanvas:
 
         self.reset_transform()
 
-        scale = 0
-        offsetx = 0.0
-        offsety = 0.0
         if (canvas_width * image_height) > (image_width * canvas_height):
             scale = canvas_height / image_height
-            offsetx = (canvas_width - image_width * scale) / 2
         else:
             scale = canvas_width / image_width
-            offsety = (canvas_height - image_height * scale) / 2
 
         self.scale(scale)
-        self.translate(-(4147 / 4) * scale, -(4147 / 4) * scale)
+        self.translate(-(self.pil_image.width / 4) * scale, -(self.pil_image.height / 4) * scale)
         self.zoom_cycle = 0
 
     def to_image_point(self, x, y):
-        if self.pil_image == None:
+        if self.pil_image is None:
             return []
 
         mat_inv = np.linalg.inv(self.mat_affine)
@@ -157,8 +168,8 @@ class PanZoomCanvas:
         return image_point
 
     def draw_image(self, pil_image):
-
-        if pil_image == None:
+        if pil_image is None:
+            self.canvas.delete('all')
             return
 
         self.pil_image = pil_image
@@ -187,29 +198,25 @@ class PanZoomCanvas:
         self.canvas.create_image(
             0, 0,
             anchor='nw',
-            image=im
+            image=im,
+            tag="map"
         )
         self.image = im
 
-        tile_size = 256
-        border_size = 3
-        width = 3
-        border_pad = 6
-        pad = 4
-
-        tile_size_scaled = ((tile_size - 1) * self.mat_affine[0, 0]) - (border_pad * 2)
-        tile_box_size_scaled = ((tile_size - 1) * self.mat_affine[0, 0]) - (pad * 2)
+        tile_size_scaled = ((self.tile_size - 1) * self.mat_affine[0, 0]) - (constants.MAP_TILE_BORDER_PADDING * 2)
+        tile_box_size_scaled = ((self.tile_size - 1) * self.mat_affine[0, 0]) - (constants.MAP_TILE_AREA_PADDING * 2)
 
         for tile in self.selected_tiles:
             x, y = tile.x, tile.y
 
-            image_x = x * (tile_size + border_size) + border_size
-            image_y = y * (tile_size + border_size) + border_size
+            image_x = x * (self.tile_size + self.tile_border_size) + self.tile_border_size
+            image_y = y * (self.tile_size + self.tile_border_size) + self.tile_border_size
 
             canvas_coords = np.dot(self.mat_affine, [image_x, image_y, 1])
-            pos_x_scaled, pos_y_scaled = canvas_coords[0] + border_pad, canvas_coords[1] + border_pad
-            pos_x_box_scaled, pos_y_box_scaled = canvas_coords[0] + pad, canvas_coords[1] + pad
+            pos_x_scaled, pos_y_scaled = canvas_coords[0] + constants.MAP_TILE_BORDER_PADDING, canvas_coords[1] + constants.MAP_TILE_BORDER_PADDING
+            pos_x_box_scaled, pos_y_box_scaled = canvas_coords[0] + constants.MAP_TILE_AREA_PADDING, canvas_coords[1] + constants.MAP_TILE_AREA_PADDING
 
+            line_width = constants.MAP_TILE_BORDER_SIZE
             color = tile.color
 
             self.canvas.create_rectangle(
@@ -221,44 +228,20 @@ class PanZoomCanvas:
                 tags="highlight"
             )
 
-            if Tile(x - 1, y) not in self.selected_tiles:
-                self.canvas.create_line(pos_x_scaled, pos_y_scaled, pos_x_scaled, pos_y_scaled + tile_size_scaled,
-                                        fill=color, width=width, tags="highlight")
-            else:
-                left_tile = self.get_tile_by_coords(x - 1, y)
-                if left_tile.color != color:
-                    self.canvas.create_line(pos_x_scaled, pos_y_scaled, pos_x_scaled, pos_y_scaled + tile_size_scaled,
-                                            fill=color, width=width, tags="highlight")
-            if Tile(x + 1, y) not in self.selected_tiles:
-                self.canvas.create_line(pos_x_scaled + tile_size_scaled, pos_y_scaled, pos_x_scaled + tile_size_scaled,
-                                        pos_y_scaled + tile_size_scaled, fill=color, width=width, tags="highlight")
-            else:
-                right_tile = self.get_tile_by_coords(x + 1, y)
-                if right_tile.color != color:
-                    self.canvas.create_line(pos_x_scaled + tile_size_scaled, pos_y_scaled,
-                                            pos_x_scaled + tile_size_scaled,
-                                            pos_y_scaled + tile_size_scaled, fill=color, width=width, tags="highlight")
-            if Tile(x, y - 1) not in self.selected_tiles:
-                self.canvas.create_line(pos_x_scaled, pos_y_scaled, pos_x_scaled + tile_size_scaled, pos_y_scaled,
-                                        fill=color, width=width, tags="highlight")
-            else:
-                bottom_tile = self.get_tile_by_coords(x, y - 1)
-                if bottom_tile.color != color:
-                    self.canvas.create_line(pos_x_scaled, pos_y_scaled, pos_x_scaled + tile_size_scaled, pos_y_scaled,
-                                            fill=color, width=width, tags="highlight")
-            if Tile(x, y + 1) not in self.selected_tiles:
-                self.canvas.create_line(pos_x_scaled, pos_y_scaled + tile_size_scaled, pos_x_scaled + tile_size_scaled,
-                                        pos_y_scaled + tile_size_scaled, fill=color, width=width, tags="highlight")
-            else:
-                top_tile = self.get_tile_by_coords(x, y + 1)
-                if top_tile.color != color:
-                    self.canvas.create_line(pos_x_scaled, pos_y_scaled + tile_size_scaled,
-                                            pos_x_scaled + tile_size_scaled,
-                                            pos_y_scaled + tile_size_scaled, fill=color, width=width, tags="highlight")
+            adjacent_coords = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+            draw_instructions = [
+                (pos_x_scaled, pos_y_scaled, pos_x_scaled, pos_y_scaled + tile_size_scaled),
+                (pos_x_scaled + tile_size_scaled, pos_y_scaled, pos_x_scaled + tile_size_scaled, pos_y_scaled + tile_size_scaled),
+                (pos_x_scaled, pos_y_scaled, pos_x_scaled + tile_size_scaled, pos_y_scaled),
+                (pos_x_scaled, pos_y_scaled + tile_size_scaled, pos_x_scaled + tile_size_scaled, pos_y_scaled + tile_size_scaled)
+            ]
+
+            for (dx, dy), (x1, y1, x2, y2) in zip(adjacent_coords, draw_instructions):
+                adjacent_tile = Tile(x + dx, y + dy)
+                if adjacent_tile not in self.selected_tiles or self.get_tile_by_coords(x + dx, y + dy).color != color:
+                    self.canvas.create_line(x1, y1, x2, y2, fill=color, width=line_width, tags="highlight")
 
     def redraw_image(self):
-        if self.pil_image == None:
-            return
         self.draw_image(self.pil_image)
         self.draw_overview_image()
 
@@ -270,6 +253,7 @@ class PanZoomCanvas:
 
     def draw_overview_image(self):
         if self.pil_image is None:
+            self.overview_canvas.delete('all')
             return
 
         if self.overview_photo is None:
@@ -306,18 +290,33 @@ class PanZoomCanvas:
 
         self.overview_canvas.delete('highlight')
 
-        tile_size = 256
         for tile in self.selected_tiles:
-            overview_tile_x = tile.x * (tile_size + 3) * self.overview_scale + 3
-            overview_tile_y = tile.y * (tile_size + 3) * self.overview_scale + 3
+            x, y = tile.x, tile.y
 
-            overview_tile_width = tile_size * self.overview_scale - 3
-            overview_tile_height = tile_size * self.overview_scale - 3
+            overview_tile_x = tile.x * (self.tile_size + 1) * self.overview_scale + 2
+            overview_tile_y = tile.y * (self.tile_size + 1) * self.overview_scale + 2
 
-            self.overview_canvas.create_rectangle(
-                overview_tile_x, overview_tile_y,
-                overview_tile_x + overview_tile_width, overview_tile_y + overview_tile_height,
-                outline=tile.color,
+            overview_tile_size = self.tile_size * self.overview_scale - 4
 
-                tags="highlight"
-            )
+            adjacent_coords = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+            draw_instructions = [
+                (overview_tile_x, overview_tile_y, overview_tile_x, overview_tile_y + overview_tile_size),
+                (overview_tile_x + overview_tile_size, overview_tile_y, overview_tile_x + overview_tile_size, overview_tile_y + overview_tile_size),
+                (overview_tile_x, overview_tile_y, overview_tile_x + overview_tile_size, overview_tile_y),
+                (overview_tile_x, overview_tile_y + overview_tile_size, overview_tile_x + overview_tile_size, overview_tile_y + overview_tile_size)
+            ]
+
+            if tile.checkout_info is None or tile.checkout_info.unchekout:
+                self.overview_canvas.create_rectangle(
+                    overview_tile_x, overview_tile_y,
+                    overview_tile_x + overview_tile_size, overview_tile_y + overview_tile_size,
+                    fill=tile.color,
+                    outline=tile.color,
+                    stipple='gray50',
+                    tags="highlight"
+                )
+
+            for (dx, dy), (x1, y1, x2, y2) in zip(adjacent_coords, draw_instructions):
+                adjacent_tile = Tile(x + dx, y + dy)
+                if adjacent_tile not in self.selected_tiles or self.get_tile_by_coords(x + dx, y + dy).color != tile.color:
+                    self.overview_canvas.create_line(x1, y1, x2, y2, fill=tile.color, width=1, tags="highlight")
