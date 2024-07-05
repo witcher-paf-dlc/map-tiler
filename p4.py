@@ -3,7 +3,6 @@ from P4 import P4, P4Exception
 from components.settings import GlobalSettings
 from models.workspace import Workspace
 
-
 class P4Manager:
     def __init__(self):
         self.p4 = P4()
