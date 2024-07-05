@@ -6,7 +6,7 @@ class Tile:
         self.x = x
         self.y = y
         self.color = color
-        self.checkout_info = checkout_info
+        self.checkout_info: CheckoutInfo = checkout_info
 
     def __eq__(self, other):
         return isinstance(other, Tile) and self.x == other.x and self.y == other.y
@@ -25,8 +25,7 @@ class Tile:
 
 
 class CheckoutInfo:
-    def __init__(self, workspace):
+    def __init__(self, workspace: str):
         self.workspace = workspace
-
-    def get_user(self):
-        return self.workspace.split('_')[0]
+        self.user = workspace.split('_')[0]
+        self.unchekout = False
