@@ -23,14 +23,29 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Build executable
+    - name: Build single executable
       run: pyinstaller main.py --windowed --onefile --name map-tiler
+
+    - name: Build folder version
+      run: pyinstaller main.py --windowed --name map-tiler
+
+    - name: Zip folder version
+      run: |
+        cd dist/map-tiler
+        powershell Compress-Archive -Path .\* -DestinationPath ..\map-tiler.zip
+        cd ../..
 
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
         name: app
         path: dist/map-tiler.exe
+
+    - name: Upload folder version artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: app-zip
+        path: dist/map-tiler.zip
 
   release:
     needs: build
@@ -43,10 +58,18 @@ jobs:
         name: app
         path: .
 
+    - name: Download folder version artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: app-zip
+        path: .
+
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
-        files: map-tiler.exe
+        files: |
+          map-tiler.exe
+          map-tiler.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
