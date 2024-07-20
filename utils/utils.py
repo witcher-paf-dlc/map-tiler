@@ -20,3 +20,6 @@ def get_random_color():
 def get_user_color():
     return '#0bb4ff'
 
+def invert_coordinate(coord, grid_size):
+    return grid_size - 1 - coord
+

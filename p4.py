@@ -29,7 +29,7 @@ class P4Manager:
         def fetch(tile_paths):
             return self.p4.run('edit', *tile_paths)
 
-        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{tile.x}_x_{tile.y}_res{level.map_data.resolution}.w2ter') for tile in
+        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{tile.x}_x_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_res{level.map_data.resolution}.w2ter') for tile in
                       tiles]
 
         self.connect_and_execute(lambda: fetch(tile_paths))
@@ -38,7 +38,7 @@ class P4Manager:
         def fetch(tile_paths):
             return self.p4.run('revert', '-a', *tile_paths)
 
-        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{tile.x}_x_{tile.y}_res{level.map_data.resolution}.w2ter') for tile in
+        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{tile.x}_x_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_res{level.map_data.resolution}.w2ter') for tile in
                       tiles]
 
         self.connect_and_execute(lambda: fetch(tile_paths))
@@ -75,9 +75,9 @@ class P4Manager:
                 user_entry = next((item for item in result if item['workspace'] == workspace), None)
 
                 if user_entry:
-                    user_entry['tiles'].append({'x': x, 'y': y})
+                    user_entry['tiles'].append({'x': x, 'y': utils.invert_coordinate(y, level.map_data.grid_size)})
                 else:
-                    new_user_entry = {'workspace': workspace, 'tiles': [{'x': x, 'y': y}]}
+                    new_user_entry = {'workspace': workspace, 'tiles': [{'x': x, 'y': utils.invert_coordinate(y, level.map_data.grid_size)}]}
                     result.append(new_user_entry)
 
         return result
