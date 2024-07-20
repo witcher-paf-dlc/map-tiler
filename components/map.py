@@ -241,6 +241,20 @@ class MapCanvas:
                 if adjacent_tile not in self.selected_tiles or self.get_tile_by_coords(x + dx, y + dy).color != color:
                     self.canvas.create_line(x1, y1, x2, y2, fill=color, width=line_width, tags="highlight")
 
+            # Сoordinates
+            coord_text = f"{x} x {y}"
+            text_x = pos_x_box_scaled + tile_box_size_scaled - 5
+            text_y = pos_y_box_scaled + 5
+
+            self.canvas.create_text(
+                text_x,
+                text_y,
+                text=coord_text,
+                fill="red",
+                anchor="ne",
+                font=("Arial", 10, "bold")
+            )
+
     def redraw_image(self):
         self.draw_image(self.pil_image)
         self.draw_overview_image()
