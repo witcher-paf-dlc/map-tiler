@@ -31,7 +31,7 @@ class P4Manager:
         def fetch(tile_paths):
             return self.p4.run('edit', *tile_paths)
 
-        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{tile.x}_x_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_res{level.map_data.resolution}.w2ter') for tile in
+        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_x_{tile.x}_res{level.map_data.resolution}.w2ter') for tile in
                       tiles]
 
         self.connect_and_execute(lambda: fetch(tile_paths))
@@ -40,10 +40,25 @@ class P4Manager:
         def fetch(tile_paths):
             return self.p4.run('revert', '-a', *tile_paths)
 
-        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{tile.x}_x_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_res{level.map_data.resolution}.w2ter') for tile in
+        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_x_{tile.x}_res{level.map_data.resolution}.w2ter') for tile in
                       tiles]
 
         self.connect_and_execute(lambda: fetch(tile_paths))
+
+    def load_workspaces(self):
+        def fetch_workspaces():
+            user_name = self.settings.get_setting('user_name')
+            stream = '//' + self.settings.get_setting('depot') + '/development'
+            return self.p4.run('clients', '-e', user_name + '_*', '-S', stream)
+
+        workspaces = self.connect_and_execute(fetch_workspaces)
+
+        extracted_workspaces = [
+            Workspace(workspace['client'], workspace['Root'], workspace['client'].split('_')[0])
+            for workspace in workspaces
+        ]
+
+        return extracted_workspaces
 
     def load_tiles(self, level):
         def fetch():
@@ -72,6 +87,10 @@ class P4Manager:
                 parts = file_name.split('_')
                 x = int(parts[1])
                 y = int(parts[3])
+
+                # Инвертируем координаты 
+                x, y = y, x
+
                 workspace = file['client']
 
                 user_entry = next((item for item in result if item['workspace'] == workspace), None)
@@ -83,18 +102,3 @@ class P4Manager:
                     result.append(new_user_entry)
 
         return result
-
-    def load_workspaces(self):
-        def fetch_workspaces():
-            user_name = self.settings.get_setting('user_name')
-            stream = '//' + self.settings.get_setting('depot') + '/development'
-            return self.p4.run('clients', '-e', user_name + '_*', '-S', stream)
-
-        workspaces = self.connect_and_execute(fetch_workspaces)
-
-        extracted_workspaces = [
-            Workspace(workspace['client'], workspace['Root'], workspace['client'].split('_')[0])
-            for workspace in workspaces
-        ]
-
-        return extracted_workspaces
