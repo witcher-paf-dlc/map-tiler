@@ -31,7 +31,7 @@ class P4Manager:
         def fetch(tile_paths):
             return self.p4.run('edit', *tile_paths)
 
-        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{tile.x}_x_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_res{level.map_data.resolution}.w2ter') for tile in
+        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_x_{tile.x}_res{level.map_data.resolution}.w2ter') for tile in
                       tiles]
 
         self.connect_and_execute(lambda: fetch(tile_paths))
@@ -40,7 +40,7 @@ class P4Manager:
         def fetch(tile_paths):
             return self.p4.run('revert', '-a', *tile_paths)
 
-        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{tile.x}_x_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_res{level.map_data.resolution}.w2ter') for tile in
+        tile_paths = [os.path.join(level.path, 'terrain_tiles', f'tile_{utils.invert_coordinate(tile.y, level.map_data.grid_size)}_x_{tile.x}_res{level.map_data.resolution}.w2ter') for tile in
                       tiles]
 
         self.connect_and_execute(lambda: fetch(tile_paths))
@@ -70,16 +70,16 @@ class P4Manager:
             file_name = os.path.basename(depot_file)
             if file_name.startswith("tile_") and file_name.endswith(".w2ter"):
                 parts = file_name.split('_')
-                x = int(parts[1])
-                y = int(parts[3])
+                x = int(parts[3])
+                y = utils.invert_coordinate(int(parts[1]), level.map_data.grid_size)
                 workspace = file['client']
 
                 user_entry = next((item for item in result if item['workspace'] == workspace), None)
 
                 if user_entry:
-                    user_entry['tiles'].append({'x': x, 'y': utils.invert_coordinate(y, level.map_data.grid_size)})
+                    user_entry['tiles'].append({'x': x, 'y': y})
                 else:
-                    new_user_entry = {'workspace': workspace, 'tiles': [{'x': x, 'y': utils.invert_coordinate(y, level.map_data.grid_size)}]}
+                    new_user_entry = {'workspace': workspace, 'tiles': [{'x': x, 'y': y}]}
                     result.append(new_user_entry)
 
         return result
